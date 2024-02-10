@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +23,9 @@ namespace EngTool
         private bool isDeviceAvailable = false;
         private bool isWipeEnabled = true;
         private bool isLockEnabled = false;
+        private string flashAllPath = "";
+        private string flashAllExceptStoragePath = "";
+        private string flashAllLockPath = "";
         public frmEng()
         {
             InitializeComponent();
@@ -89,6 +94,16 @@ namespace EngTool
             if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(romBrowse.SelectedPath))
             {
                 txtPath.Text = romBrowse.SelectedPath;
+                flashAllPath = Path.Combine(romBrowse.SelectedPath, "flash_all.bat");
+                flashAllExceptStoragePath = Path.Combine(romBrowse.SelectedPath, "flash_all_except_storage.bat");
+                flashAllLockPath = Path.Combine(romBrowse.SelectedPath, "flash_all_lock.bat");
+                if (!File.Exists(flashAllPath) && File.Exists(flashAllExceptStoragePath) && File.Exists(flashAllLockPath))
+                {
+                    MessageBox.Show("This directory doesn't contain a valid Fastboot ROM.", "Incorrect Firmware", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    flashAllPath = "";
+                    flashAllExceptStoragePath = "";
+                    flashAllLockPath = "";
+                }
             }
         }
 
@@ -126,6 +141,30 @@ namespace EngTool
             btnFlash.Enabled = true;
         }
 
+        private void FlashProcedure(string path, string deviceId)
+        {
+            if (File.Exists(flashAllPath) && File.Exists(flashAllExceptStoragePath) && File.Exists(flashAllLockPath))
+            {
+                if (isWipeEnabled)
+                {
+                    Console.WriteLine(flashAllPath);
+                }
+                else if (isLockEnabled)
+                {
+                    Console.WriteLine(flashAllLockPath);
+                }
+                else
+                {
+                    Console.WriteLine(flashAllExceptStoragePath);
+                }
+            }
+            else
+            {
+                MessageBox.Show("The selected directory doesn't contain a valid Fastboot ROM.", "Incorrect Firmware", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CancelFlash();
+            }
+        }
+
         private void FlashImage(string path, string deviceId)
         {
             isFlashing = true;
@@ -150,7 +189,7 @@ namespace EngTool
 
                     if (result3 == DialogResult.Yes)
                     {
-                        
+                        FlashProcedure(path, deviceId);
                     }
                     else
                     {

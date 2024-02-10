@@ -157,7 +157,6 @@
             // 
             // romBrowse
             // 
-            this.romBrowse.RootFolder = System.Environment.SpecialFolder.MyComputer;
             this.romBrowse.ShowNewFolderButton = false;
             // 
             // dbDevices
